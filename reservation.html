@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+  <head>
+    <meta charset='utf-8'>
+    <title>Reservation</title>
+    <link rel="icon" href="/settings/favicon.png">
+  </head>
+
+  <body>
+
+    <form name="selection" method="GET" action="/cgi-bin/reservation.py" id="selected_form">
+      <div>使用するマシン</div>
+      <select name="selected_machine" onChange="quicksubmit()">
+      {%- for item in machines -%}
+        {%- if item == selected_machine %}
+          <option name="selected_machine" value="{{item}}" selected>{{ item }}</option>
+        {%- else %}
+          <option name="selected_machine" value="{{item}}">{{ item }}</option>
+        {%- endif -%}
+      {%- endfor %}
+      </select>
+      <br><br>
+      <div>予約する日程</div>
+      <select name="selected_date" onChange="quicksubmit()">
+      {%- for item in dlist_query -%}
+        {%- if dlist_query[loop.index0] == selected_date_query %}
+          <option name="selected_date" value="{{dlist_query[loop.index0]}}" selected >{{dlist_label[loop.index0]}}</option>
+        {%- else %}
+          <option name="selected_date" value="{{dlist_query[loop.index0]}}" >{{dlist_label[loop.index0]}}</option>
+        {%- endif -%}
+      {%- endfor %}
+      </select>
+    </form>
+
+    <br><br>
+    <div><b> {{selected_date_label}} </b></div>
+
+    <form name="deleteForm" method="POST" action="/cgi-bin/reservation.py">
+      <input type="hidden" name="del_switch"    value="1" />
+      <input type="hidden" name="selected_machine"    value="{{ selected_machine }}">
+      <input type="hidden" name="selected_date" value="{{ selected_date_query }}">
+      <table style="border-collapse:collapse;border:none;" border="1" cellspacing="0">
+        <thead>
+          <tr>
+            <th style="width:60px">ID</th>
+            <th style="width:100px">開始</th>
+            <th style="width:100px">終了</th>
+            <th style="width:100px">名前</th>
+            <th style="width:100px">所属</th>
+            <th style="width:140px">備考</th>
+            <th style="width:100px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%- for item in data_time %}
+          <tr>
+          {%- set outer_loop = loop %}
+          {%- for item in range(6) %}
+            <td align="center">{{data_time[outer_loop.index0][loop.index0]}}</td>
+          {%- endfor %}
+            <td align="center"> <a href="javascript:setAndSubmit({{data_time[outer_loop.index0][0]}})"> 削除 </a> </td>
+          </tr>
+        {%- endfor %}
+        </tbody>
+      </table>
+      <input type="hidden" name="delete" value="" />
+    </form>
+
+    <form name="registerForm" method="POST" action="/cgi-bin/reservation.py">
+      <input type="hidden" name="reg_switch"    value="1" />
+      <input type="hidden" name="selected_machine"    value="{{ selected_machine }}" />
+      <input type="hidden" name="selected_date" value="{{ selected_date_query }}" />
+      <table style="border-collapse:collapse;border:none;" border = "1" cellspacing="0">
+        <tbody>
+          <tr>
+            <td style="width:60px"> </td>
+            <td style="width:100px"> <input type="text" style="width:100%; box-sizing:border-box" name="start" value="{{ start }}" /> </td>
+            <td style="width:100px"> <input type="text" style="width:100%; box-sizing:border-box" name="end"   value="{{ end }}"   /> </td>
+            <td style="width:100px"> <input type="text" style="width:100%; box-sizing:border-box" name="name"  value="{{ name }}"  /> </td>
+            <td style="width:100px">
+              <select name="lab" style="width:100%; box-sizing:border-box">
+              {%- for item in lab_list -%}
+                {%- if item == lab %}
+                  <option name="lab" value="{{item}}" selected >{{ item }}</option>
+                {%- else %}
+                  <option name="lab" value="{{item}}">{{ item }}</option>
+                {%- endif -%}
+              {%- endfor %}
+              </select>
+            </td>
+            <td style="width:140px"> <input type="text" style="width:100%; box-sizing:border-box" name="memo"  value="{{ memo }}"  /> </td>
+            <td style="width:100px"> <input type="submit" style="width:100%; box-sizing:border-box" name="submit" value="追加" /> </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+
+    <table border = "0" >
+      <tbody>
+        <tr>
+          <td style="width:60px"> </td>
+          <td><font color="#808080">時刻は00:00から24:00までの値を入力してください （例: 07:30 または 0730）</font></td>
+        </tr>
+        <tr>
+          <td style="width:60px"> </td>
+          <td><font color="#ff0000"> {{message}} </font></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script language="javascript">
+      function setAndSubmit(id) {
+          document.deleteForm.delete.value=id;
+          document.deleteForm.submit();
+      }
+      function quicksubmit(){
+          obj_d = document.selection.selected_date;
+          obj_m = document.selection.selected_machine;
+          obj_l = document.registerForm.lab;
+          index_d = obj_d.selectedIndex;
+          index_m = obj_m.selectedIndex;
+          index_l = obj_l.selectedIndex;
+          href = '/cgi-bin/reservation.py'
+          href += '?selected_date='
+          href += obj_d.options[index_d].value;
+          href += '&selected_machine='
+          href += obj_m.options[index_m].value;
+          href += '&lab='
+          href += obj_l.options[index_l].value;
+          href += '&submit='
+          location.href = href;
+      }
+      history.pushState(null,null,"?selected_date={{selected_date_query}}&selected_machine={{selected_machine}}&lab={{lab}}");
+    </script>
+
+  </body>
+
+</html>
